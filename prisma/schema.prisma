@@ -1,0 +1,88 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../client"
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+
+enum Kind {
+  MAGAZINE
+  PROJECT
+}
+
+model About {
+  id          String @id @default(auto()) @map("_id") @db.ObjectId
+  vk          String
+  telegram    String
+  facebook    String
+  phoneNumber String
+  email       String
+  content     Json
+}
+
+model Author {
+  id           String         @id @default(auto()) @map("_id") @db.ObjectId
+  name         String
+  cover        Image          @relation(fields: [imageId], references: [id])
+  pieces       Piece[]
+  slug         String         @unique
+  biography    Json
+  imageId      String         @db.ObjectId
+  CorpusAuthor CorpusAuthor[]
+}
+
+model Piece {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  title     String
+  content   Json
+  cover     Image?   @relation(fields: [imageId], references: [id])
+  slug      String   @unique
+  imageId   String   @db.ObjectId
+  createdAt DateTime @default(now())
+  author    Author?  @relation(fields: [authorId], references: [id])
+  authorId  String?  @db.ObjectId
+}
+
+model Corpus {
+  id           String         @id @default(auto()) @map("_id") @db.ObjectId
+  kind         Kind
+  title        String
+  cover        Image?         @relation(fields: [imageId], references: [id])
+  referee      String
+  content      Json
+  slug         String         @unique
+  createdAt    DateTime       @default(now())
+  imageId      String         @db.ObjectId
+  CorpusAuthor CorpusAuthor[]
+}
+
+model CorpusAuthor {
+  id       String @id @default(auto()) @map("_id") @db.ObjectId
+  author   Author @relation(fields: [authorId], references: [id])
+  corpus   Corpus @relation(fields: [corpusId], references: [id])
+  authorId String @db.ObjectId
+  corpusId String @db.ObjectId
+}
+
+model News {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  content   Json
+  referee   String
+  createdAt DateTime @default(now())
+}
+
+model Image {
+  id      String   @id @default(auto()) @map("_id") @db.ObjectId
+  name    String
+  url     String
+  caption String?
+  Piece   Piece[]
+  Corpus  Corpus[]
+  Author  Author[]
+}
